@@ -11,47 +11,67 @@ namespace P2FixAnAppDotNetCode.Models
         /// <summary>
         /// Read-only property for display only
         /// </summary>
-        public IEnumerable<CartLine> Lines => GetCartLineList();
+        //public List<CartLine> Lines => GetCartLineList();
+        private List<CartLine> _cartLines = new List<CartLine>();
 
         /// <summary>
         /// Return the actual cartline list
         /// </summary>
         /// <returns></returns>
-        private List<CartLine> GetCartLineList()
-        {
-            return new List<CartLine>();
-        }
+        //private List<CartLine> GetCartLineList()
+        //{
+        //    return new List<CartLine>();
+        //}
+        public List<CartLine> Lines => _cartLines;
 
         /// <summary>
         /// Adds a product in the cart or increment its quantity in the cart if already added
         /// </summary>//
         public void AddItem(Product product, int quantity)
         {
-            // TODO implement the method
+            var line = _cartLines.FirstOrDefault(p => p.Product.Id == product.Id);
+
+            if (line == null)
+            {
+                _cartLines.Add(new CartLine
+                {
+                    Product = product,
+                    Quantity = quantity
+                });
+            }
+            else
+            {
+                line.Quantity += quantity;
+            }
+        }
+
+
+        /// <summary>
+        /// Removes a product from the cart
+        /// </summary>
+        public void RemoveLine(Product product)
+        {
+            _cartLines.RemoveAll(l => l.Product.Id == product.Id);
         }
 
         /// <summary>
-        /// Removes a product form the cart
-        /// </summary>
-        public void RemoveLine(Product product) =>
-            GetCartLineList().RemoveAll(l => l.Product.Id == product.Id);
-
-        /// <summary>
-        /// Get total value of a cart
+        /// Gets the total value of the cart
         /// </summary>
         public double GetTotalValue()
         {
-            // TODO implement the method
-            return 0.0;
+            return _cartLines.Sum(l => l.Product.Price * l.Quantity);
         }
 
         /// <summary>
-        /// Get average value of a cart
+        /// Gets the average value per item in the cart
         /// </summary>
         public double GetAverageValue()
         {
-            // TODO implement the method
-            return 0.0;
+            if (!_cartLines.Any())
+                return 0.0;
+
+            int totalQuantity = _cartLines.Sum(l => l.Quantity);
+            return GetTotalValue() / totalQuantity;
         }
 
         /// <summary>
@@ -59,8 +79,7 @@ namespace P2FixAnAppDotNetCode.Models
         /// </summary>
         public Product FindProductInCartLines(int productId)
         {
-            // TODO implement the method
-            return null;
+            return _cartLines.FirstOrDefault(l => l.Product.Id == productId)?.Product;
         }
 
         /// <summary>
@@ -68,16 +87,16 @@ namespace P2FixAnAppDotNetCode.Models
         /// </summary>
         public CartLine GetCartLineByIndex(int index)
         {
-            return Lines.ToArray()[index];
+            return _cartLines.ElementAtOrDefault(index);
         }
 
+
         /// <summary>
-        /// Clears a the cart of all added products
+        /// Clears all added products from cart
         /// </summary>
         public void Clear()
         {
-            List<CartLine> cartLines = GetCartLineList();
-            cartLines.Clear();
+            _cartLines.Clear();
         }
     }
 
